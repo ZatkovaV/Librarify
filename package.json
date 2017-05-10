@@ -1,0 +1,28 @@
+{
+  "name": "librarify",
+  "version": "1.0.0",
+  "description": "A RESTful API server for managing collection of books",
+  "main": "app.ts",
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZatkovaV/Librarify.git"
+  },
+  "keywords": [
+    "REST",
+    "book",
+    "collection",
+    "API"
+  ],
+  "author": "Veronika Zatkova",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/ZatkovaV/Librarify/issues"
+  },
+  "homepage": "https://github.com/ZatkovaV/Librarify#readme",
+  "dependencies": {
+    "express": "^4.15.2"
+  }
+}
