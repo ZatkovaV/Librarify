@@ -4,7 +4,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var B = require("../model/book");
 // offers methods to work with models
 var Api = (function () {
-    // TO_DO potrebujem si ja vobec posielat to db?
     function Api() {
         this.books = B.Book;
     }
@@ -19,7 +18,7 @@ var Api = (function () {
             }
         });
     };
-    // dopis potom, aby sa v priapde erroru vypisal error aj na endpointe
+    // dopis potom, aby sa v pripade erroru vypisal error aj na endpointe
     // creates new book
     Api.prototype.addBook = function (req, res) {
         var newBook = new B.Book({ name: req.body.name, desc: req.body.desc });
@@ -28,8 +27,17 @@ var Api = (function () {
                 console.error(err);
             else {
                 res.setHeader('Content-Type', 'application/json');
-                res.send(JSON.stringify({ sucess: newBook }));
+                res.send(JSON.stringify({ success: newBook }));
             }
+        });
+    };
+    // deletes book
+    Api.prototype.deleteBook = function (req, res) {
+        this.books.findByIdAndRemove(req.body.id, function (err, result) {
+            res.send({
+                message: 'Object successfully deleted.',
+                id: result._id
+            });
         });
     };
     return Api;

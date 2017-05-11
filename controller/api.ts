@@ -6,7 +6,6 @@ export class Api {
     private books: typeof B.Book;
 
 
-    // TO_DO potrebujem si ja vobec posielat to db?
     constructor() {
         this.books = B.Book;
     }
@@ -23,7 +22,7 @@ export class Api {
         });
     }
 
-    // dopis potom, aby sa v priapde erroru vypisal error aj na endpointe
+    // dopis potom, aby sa v pripade erroru vypisal error aj na endpointe
 
     // creates new book
     public addBook(req, res) {
@@ -33,9 +32,19 @@ export class Api {
             if (err) console.error(err);
             else {
                 res.setHeader('Content-Type', 'application/json');
-                res.send(JSON.stringify({ sucess: newBook }));
+                res.send(JSON.stringify({ success: newBook }));
             }
         });
     }
 
+
+    // deletes book
+    public deleteBook(req, res) {
+        this.books.findByIdAndRemove(req.body.id, function (err, result) {
+            res.send({
+                message: 'Object successfully deleted.',
+                id: result._id
+            });
+        });
+    }
 }

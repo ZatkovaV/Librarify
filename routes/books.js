@@ -11,8 +11,14 @@ router.get('/all', function (req, res) {
 
 
 // POST create new book
-router.post('/add', function (req, res) {
+router.post('/', function (req, res) {
     api.addBook(req, res);
+});
+
+
+// DELETE delete a book according to id
+router.delete('/', function (req, res) {
+    api.deleteBook(req, res);
 });
 
 module.exports = router;
