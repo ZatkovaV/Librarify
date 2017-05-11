@@ -11,18 +11,28 @@ export class Api {
     }
 
 
-    // returns all books
-    public getBooks(res) {
-        this.books.find({}).populate('Author').exec(function (err, result) {
-           if (err) res.send(JSON.stringify(err));
-           else {
-               res.setHeader('Content-Type', 'application/json');
-               res.send(JSON.stringify({success: result}));
-           }
+    // finds books according to id or name
+    public findBooks(req, res) {
+
+        // priority of searching according to book id is higher
+        // that means if both name and id are submitted as params
+        // book will by find according to id
+
+        if (req.param.id) var query = this.books.findById(req.param.id);
+
+        // find books according to name
+        else if (req.param('name')) var query = this.books.find({name: new RegExp("^.*" + req.param('name') + ".*$", "i")});
+        else var query = this.books.find();
+
+        query.exec(function (err, result) {
+            if (err) res.send(JSON.stringify(err));
+            else {
+                res.setHeader('Content-Type', 'application/json');
+                res.send(JSON.stringify({success: result}));
+            }
         });
     }
 
-    // dopis potom, aby sa v pripade erroru vypisal error aj na endpointe
 
     // creates new book
     public addBook(req, res) {

@@ -10,6 +10,7 @@ var books = require('./routes/books');
 // Create db connection
 mongoose.connect('mongodb://localhost/librarify');
 
+
 var db = mongoose.connection;
 
 

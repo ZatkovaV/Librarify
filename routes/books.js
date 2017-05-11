@@ -4,9 +4,10 @@ var api_int = require('../controller/api');
 
 var api = new api_int.Api();
 
-// GET all books
-router.get('/all', function (req, res) {
-    api.getBooks(res);
+
+// GET find books according to id or name
+router.get('/', function (req, res) {
+    api.findBooks(req, res);
 });
 
 

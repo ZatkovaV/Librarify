@@ -7,9 +7,18 @@ var Api = (function () {
     function Api() {
         this.books = B.Book;
     }
-    // returns all books
-    Api.prototype.getBooks = function (res) {
-        this.books.find({}).populate('Author').exec(function (err, result) {
+    // finds books according to id or name
+    Api.prototype.findBooks = function (req, res) {
+        // priority of searching according to book id is higher
+        // that means if both name and id are submitted as params
+        // book will by find according to id
+        if (req.param.id)
+            var query = this.books.findById(req.param.id);
+        else if (req.param('name'))
+            var query = this.books.find({ name: new RegExp("^.*" + req.param('name') + ".*$", "i") });
+        else
+            var query = this.books.find();
+        query.exec(function (err, result) {
             if (err)
                 res.send(JSON.stringify(err));
             else {
@@ -18,7 +27,6 @@ var Api = (function () {
             }
         });
     };
-    // dopis potom, aby sa v pripade erroru vypisal error aj na endpointe
     // creates new book
     Api.prototype.addBook = function (req, res) {
         var newBook = new B.Book({ name: req.body.name, desc: req.body.desc });
