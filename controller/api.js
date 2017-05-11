@@ -11,7 +11,7 @@ var Api = (function () {
     Api.prototype.getBooks = function (res) {
         this.books.find({}).populate('Author').exec(function (err, result) {
             if (err)
-                console.error(err);
+                res.send(JSON.stringify(err));
             else {
                 res.setHeader('Content-Type', 'application/json');
                 res.send(JSON.stringify({ success: result }));
@@ -24,20 +24,46 @@ var Api = (function () {
         var newBook = new B.Book({ name: req.body.name, desc: req.body.desc });
         newBook.save(function (err, newBook) {
             if (err)
-                console.error(err);
+                res.send(JSON.stringify(err));
             else {
                 res.setHeader('Content-Type', 'application/json');
                 res.send(JSON.stringify({ success: newBook }));
             }
         });
     };
-    // deletes book
+    // delete a book according to id
     Api.prototype.deleteBook = function (req, res) {
         this.books.findByIdAndRemove(req.body.id, function (err, result) {
-            res.send({
-                message: 'Object successfully deleted.',
-                id: result._id
-            });
+            if (err)
+                res.send(JSON.stringify(err));
+            else {
+                res.send({
+                    message: 'Object successfully deleted.',
+                    id: result._id
+                });
+            }
+        });
+    };
+    // update a book
+    Api.prototype.updateBook = function (req, res) {
+        this.books.findById(req.body.id, function (err, result) {
+            if (err)
+                res.send(JSON.stringify(err));
+            else {
+                result.name = req.body.name || result.name;
+                result.desc = req.body.desc || result.desc;
+                result.authors = req.body.authors || result.authors;
+                result.save(function (err, rest) {
+                    if (err)
+                        res.send(JSON.stringify(err));
+                    else {
+                        res.send({
+                            message: 'Object was successfully updated.',
+                            object: rest
+                        });
+                    }
+                });
+            }
         });
     };
     return Api;

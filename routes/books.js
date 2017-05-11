@@ -16,6 +16,12 @@ router.post('/', function (req, res) {
 });
 
 
+// PUT update book info
+router.put('/', function (req, res) {
+    api.updateBook(req, res);
+})
+
+
 // DELETE delete a book according to id
 router.delete('/', function (req, res) {
     api.deleteBook(req, res);
