@@ -19,6 +19,19 @@ var Api = (function () {
             }
         });
     };
+    // dopis potom, aby sa v priapde erroru vypisal error aj na endpointe
+    // creates new book
+    Api.prototype.addBook = function (req, res) {
+        var newBook = new B.Book({ name: req.body.name, desc: req.body.desc });
+        newBook.save(function (err, newBook) {
+            if (err)
+                console.error(err);
+            else {
+                res.setHeader('Content-Type', 'application/json');
+                res.send(JSON.stringify({ sucess: newBook }));
+            }
+        });
+    };
     return Api;
 }());
 exports.Api = Api;
