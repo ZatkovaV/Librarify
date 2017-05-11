@@ -6,8 +6,9 @@ let Schema = mongoose.Schema;
 // Book entity
 
 var BookSchema = new Schema({
-    name: { type: String, index: true},  // Book name
+    name    : { type: String, index: true},  // Book name
     desc    : String,  // Description
+    authors : [{type: Schema.Types.ObjectId, ref: 'Author'}] // Book's authors
 });
 
 

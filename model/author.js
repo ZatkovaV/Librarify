@@ -5,5 +5,6 @@ var Schema = mongoose.Schema;
 // Author entity
 var AuthorSchema = new Schema({
     name: String,
+    books: [{ type: Schema.Types.ObjectId, ref: 'Book' }] // Books written by author
 });
 exports.Author = mongoose.model('Author', AuthorSchema);
