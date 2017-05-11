@@ -5,13 +5,12 @@ var B = require("../model/book");
 // offers methods to work with models
 var Api = (function () {
     // TO_DO potrebujem si ja vobec posielat to db?
-    function Api(db_object) {
-        this.db = db_object;
+    function Api() {
         this.books = B.Book;
     }
     // returns all books
     Api.prototype.getBooks = function (res) {
-        this.books.find({}, function (err, result) {
+        this.books.find({}).populate('Author').exec(function (err, result) {
             if (err)
                 console.error(err);
             else {

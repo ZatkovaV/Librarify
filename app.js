@@ -1,7 +1,10 @@
 var express = require('express');
-var app = express();
+var app =  express();
 var mongoose = require('mongoose');
 var api_int = require('./controller/api');
+
+var index = require('./routes/index');
+var books = require('./routes/books');
 
 // Create db connection
 mongoose.connect('mongodb://localhost/librarify');
@@ -13,20 +16,10 @@ db.on('error', console.error.bind(console, 'Could not connect:'));
 db.once('open', function() {
     console.log('DB is on');
 
-    // creates new instantion of Api class
-    var api = new api_int.Api(db);
-
-    app.get('/all', function (req, res) {
-        api.getBooks(res);
-    })
+    app.use('/books', books);
 });
 
-
-// root
-app.get('/', function (req, res) {
-    res.send('Still an empty project..');
-
-});
+app.use('/', index);
 
 
 app.listen(4343, function () {
