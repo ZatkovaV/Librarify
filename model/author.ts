@@ -6,8 +6,8 @@ let Schema = mongoose.Schema;
 // Author entity
 
 var AuthorSchema = new Schema({
-    name: String,  // Author name
-    books: [{type: Schema.Types.ObjectId, ref: 'Book'}] // Books written by author
+    name: { type: String, unique: true },  // Author name
+    books: [{ type: Schema.Types.ObjectId, ref: 'Book' }] // Books written by author
 });
 
 

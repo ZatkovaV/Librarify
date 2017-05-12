@@ -1,13 +1,16 @@
 // import models
 import * as B from '../model/book'
+import * as A from '../model/author'
+
 
 // offers methods to work with models
 export class Api {
     private books: typeof B.Book;
-
+    private authors: typeof A.Author;
 
     constructor() {
         this.books = B.Book;
+        this.authors = A.Author;
     }
 
 
@@ -18,11 +21,13 @@ export class Api {
         // that means if both name and id are submitted as params
         // book will by find according to id
 
-        if (req.param.id) var query = this.books.findById(req.param.id);
+        if (req.query.id) var query = this.books.findById(req.query.id).populate('authors');
 
         // find books according to name
-        else if (req.param('name')) var query = this.books.find({name: new RegExp("^.*" + req.param('name') + ".*$", "i")});
-        else var query = this.books.find();
+        else if (req.query.name) var query = this.books.find({name: new RegExp("^.*" + req.query.name + ".*$", "i")}).populate('authors');
+
+        // if no matching parameter is set
+        else var query = this.books.find().populate('authors');
 
         query.exec(function (err, result) {
             if (err) res.send(JSON.stringify(err));
@@ -34,17 +39,53 @@ export class Api {
     }
 
 
+    private createBook(author_names, req, res) {
+
+        let ids = [];
+
+        this.authors.find({ 'name': { $in: author_names} }, {_id: 1},  function (err, result) {
+            for (let i = 0; i < result.length; i++) {
+                ids.push(result[i]._id);
+            }
+
+            let newBook = new B.Book({ name: req.body.name, desc: req.body.desc, authors: ids });
+
+            // save object to db
+            newBook.save(function (err, newBook) {
+                if (err) res.send(console.log(err));
+                else {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(JSON.stringify({ success: newBook }));
+                }
+            });
+        });
+    }
+
+
+
     // creates new book
     public addBook(req, res) {
-        let newBook = new B.Book({ name: req.body.name, desc: req.body.desc });
 
-        newBook.save(function (err, newBook) {
-            if (err) res.send(JSON.stringify(err));
-            else {
-                res.setHeader('Content-Type', 'application/json');
-                res.send(JSON.stringify({ success: newBook }));
-            }
-        });
+        // when creating a new book, we also create authors - if they don't exist yet
+        // currently, authors are
+        let foo = [];
+        let author_names = req.body.author;
+        var self = this;
+
+
+        for (let i = 0; i < author_names.length; i++) {
+            foo.push({name: author_names[i]});
+        }
+
+       this.authors.insertMany(foo, {ordered: false}, function (err, r) {
+           if (err) {
+               console.log(err);
+           }
+           self.createBook(author_names, req, res);
+       });
+
+
+
     }
 
 

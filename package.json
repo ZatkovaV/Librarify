@@ -27,6 +27,8 @@
     "express": "^4.15.2",
     "mongodb": "^2.2.26",
     "mongoose": "^4.9.8",
+    "request": "^2.81.0",
+    "request-promise": "^4.2.1",
     "typescript": "^2.3.2"
   }
 }
