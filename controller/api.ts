@@ -2,8 +2,9 @@
 
 import * as B from '../model/book'
 import * as A from '../model/author'
+import * as S from 'mongoose'
 // import * as PR from 'request-promise'
-// import * as p from 'request'
+// import Schema as p from 'request'
 
 
 
@@ -11,6 +12,7 @@ import * as A from '../model/author'
 export class Api {
     private books: typeof B.Book;
     private authors: typeof A.Author;
+    private tmpAuthors: Array<S.Schema.Types.ObjectId> = [];
 
     constructor() {
         this.books = B.Book;
@@ -43,6 +45,7 @@ export class Api {
             }
         });
     }
+
 
 
     // ids - array of id's of authors, which are connected to a given book
@@ -145,27 +148,83 @@ export class Api {
     }
 
 
+    private async updateBookAndAuthors(req, res, book_id, name, desc) {
+
+        // get id's of all current authors
+        await this.authors.find({ 'name': { $in: req.body.author} }, {_id: 1}).exec()
+            .then((authors) => {
+                this.tmpAuthors = [];
+
+                // creates array of id's
+                for (let i = 0; i < authors.length; i++)
+                    this.tmpAuthors.push(authors[i]._id);
+            })
+            .then(async () => {
+
+                // add book to its authors' list of books
+                await this.authors.update({_id: {$in: this.tmpAuthors}},
+                    { $push: {books: book_id} }, {multi: true}).exec();
+            })
+            .then(() => {
+                // and finally update book info
+                this.books.update({_id: book_id}, {
+                    name: name,
+                    desc: desc,
+                    authors: this.tmpAuthors
+                }, (err) => {res.send({message: "Book successfully updated."})});
+            });
+    }
+
+
 
     // update a book
-    public updateBook(req, res) {
-        this.books.findById(req.body.id, function (err, result) {
-            if (err) res.send(JSON.stringify(err));
-            else {
-                result.name = req.body.name || result.name;
-                result.desc = req.body.desc || result.desc;
-                result.authors = req.body.authors || result.authors;
+    public async updateBook(req, res) {
+        let self = this;
+        let book_id = req.params.id;
 
-                result.save(function (err, rest) {
-                    if (err) res.send(JSON.stringify(err));
-                    else {
-                        res.send({
-                            message: 'Object was successfully updated.',
-                            object: rest
-                        })
-                    }
-                });
+        // find the book first
+        await this.books.find({_id: book_id}).exec()
+        .then(async (result) => {
+
+            // set basic book params to update
+            // if params to update were not sent, keep current value
+            let name = req.body.name || result.name;
+            let desc = req.body.desc || result.desc;
+
+            // if authors are supposed to be changed, change them first
+            if (req.body.author) {
+
+                // remove book's id from all previous authors
+                await this.authors.update({books: book_id},
+                    { $pull: {books: book_id} }, {multi: true}).exec()
+                    .then (() => {
+
+                        let newAthrs = [];
+
+                        // prepare names of authors for being inserted in db
+                        for (let i = 0; i < req.body.author.length; i++)
+                            newAthrs.push({name: req.body.author[i]});
+
+                        return newAthrs;
+                    })
+                    .then((newAuthors) => {
+
+                        // create new authors, if any
+                        this.authors.insertMany(newAuthors, {ordered: false}, async function () {
+                            await self.updateBookAndAuthors(req, res, book_id, name, desc);
+                        });
+                    });
             }
-        })
+
+            // if no authors needed to be updated
+            else {
+                this.books.update({_id: book_id}, {
+                    name: name,
+                    desc: desc,
+                }, (err) => { res.send({message: "Book successfully updated."}); });
+            }
+        });
+
     }
 
 }

@@ -12,10 +12,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const B = require("../model/book");
 const A = require("../model/author");
 // import * as PR from 'request-promise'
-// import * as p from 'request'
+// import Schema as p from 'request'
 // offers methods to work with models
 class Api {
     constructor() {
+        this.tmpAuthors = [];
         this.books = B.Book;
         this.authors = A.Author;
     }
@@ -116,26 +117,69 @@ class Api {
             });
         });
     }
+    updateBookAndAuthors(req, res, book_id, name, desc) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // get id's of all current authors
+            yield this.authors.find({ 'name': { $in: req.body.author } }, { _id: 1 }).exec()
+                .then((authors) => {
+                this.tmpAuthors = [];
+                // creates array of id's
+                for (let i = 0; i < authors.length; i++)
+                    this.tmpAuthors.push(authors[i]._id);
+            })
+                .then(() => __awaiter(this, void 0, void 0, function* () {
+                // add book to its authors' list of books
+                yield this.authors.update({ _id: { $in: this.tmpAuthors } }, { $push: { books: book_id } }, { multi: true }).exec();
+            }))
+                .then(() => {
+                // and finally update book info
+                this.books.update({ _id: book_id }, {
+                    name: name,
+                    desc: desc,
+                    authors: this.tmpAuthors
+                }, (err) => { res.send({ message: "Book successfully updated." }); });
+            });
+        });
+    }
     // update a book
     updateBook(req, res) {
-        this.books.findById(req.body.id, function (err, result) {
-            if (err)
-                res.send(JSON.stringify(err));
-            else {
-                result.name = req.body.name || result.name;
-                result.desc = req.body.desc || result.desc;
-                result.authors = req.body.authors || result.authors;
-                result.save(function (err, rest) {
-                    if (err)
-                        res.send(JSON.stringify(err));
-                    else {
-                        res.send({
-                            message: 'Object was successfully updated.',
-                            object: rest
+        return __awaiter(this, void 0, void 0, function* () {
+            let self = this;
+            let book_id = req.params.id;
+            // find the book first
+            yield this.books.find({ _id: book_id }).exec()
+                .then((result) => __awaiter(this, void 0, void 0, function* () {
+                // set basic book params to update
+                // if params to update were not sent, keep current value
+                let name = req.body.name || result.name;
+                let desc = req.body.desc || result.desc;
+                // if authors are supposed to be changed, change them first
+                if (req.body.author) {
+                    // remove book's id from all previous authors
+                    yield this.authors.update({ books: book_id }, { $pull: { books: book_id } }, { multi: true }).exec()
+                        .then(() => {
+                        let newAthrs = [];
+                        // prepare names of authors for being inserted in db
+                        for (let i = 0; i < req.body.author.length; i++)
+                            newAthrs.push({ name: req.body.author[i] });
+                        return newAthrs;
+                    })
+                        .then((newAuthors) => {
+                        // create new authors, if any
+                        this.authors.insertMany(newAuthors, { ordered: false }, function () {
+                            return __awaiter(this, void 0, void 0, function* () {
+                                yield self.updateBookAndAuthors(req, res, book_id, name, desc);
+                            });
                         });
-                    }
-                });
-            }
+                    });
+                }
+                else {
+                    this.books.update({ _id: book_id }, {
+                        name: name,
+                        desc: desc,
+                    }, (err) => { res.send({ message: "Book successfully updated." }); });
+                }
+            }));
         });
     }
 }
