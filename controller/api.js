@@ -100,23 +100,20 @@ class Api {
     // delete a book according to id
     // remove book id from its authors' list of books
     deleteBook(req, res) {
-        let self = this;
-        this.books.findByIdAndRemove(req.params.id, function (err, result) {
-            if (err)
-                res.send(JSON.stringify(err));
-            else {
-                // also remove book's id in authors' list of books
-                self.authors.updateMany({ _id: { $in: result.authors } }, { $pull: { books: result._id } }, function (err) {
-                    if (err)
-                        console.log(err);
-                    else {
-                        res.send({
-                            message: 'Object successfully deleted. ',
-                            id: result._id
-                        });
-                    }
+        return __awaiter(this, void 0, void 0, function* () {
+            let id = req.params.id;
+            // remove book itself
+            yield this.books.remove({ _id: id }).exec()
+                .then(() => __awaiter(this, void 0, void 0, function* () {
+                // remove book's id from all its authors
+                yield this.authors.update({ books: id }, { $pull: { books: id } }, { multi: true }).exec();
+            }))
+                .then(() => {
+                res.send({
+                    message: 'Object successfully deleted. ',
+                    id: id
                 });
-            }
+            });
         });
     }
     // update a book

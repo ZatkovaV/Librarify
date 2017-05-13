@@ -126,23 +126,21 @@ export class Api {
 
     // delete a book according to id
     // remove book id from its authors' list of books
-    public deleteBook(req, res) {
-        let self = this;
+    public async deleteBook(req, res) {
+        let id = req.params.id;
 
-        this.books.findByIdAndRemove(req.params.id, function (err, result) {
-            if (err) res.send(JSON.stringify(err));
-            else {
-                // also remove book's id in authors' list of books
-                self.authors.updateMany({_id: {$in: result.authors}}, { $pull: {books: result._id} }, function (err) {
-                    if (err) console.log(err);
-                    else {
-                        res.send({
-                            message: 'Object successfully deleted. ',
-                            id: result._id
-                        });
-                    }
+        // remove book itself
+        await this.books.remove({ _id: id }).exec()
+        .then(async () => {
+
+            // remove book's id from all its authors
+            await this.authors.update({books: id}, { $pull: {books: id} }, {multi: true}).exec()
+        })
+        .then(() => {
+                res.send({
+                    message: 'Object successfully deleted. ',
+                    id: id
                 });
-            }
         });
     }
 
