@@ -12,19 +12,19 @@ router.get('/', function (req, res) {
 
 
 // POST create new book
-router.post('/', function (req, res) {
+router.post('/new', function (req, res) {
     api.addBook(req, res);
 });
 
 
 // PUT update book info
-router.put('/', function (req, res) {
+router.put('/edit/:id', function (req, res) {
     api.updateBook(req, res);
 })
 
 
 // DELETE delete a book according to id
-router.delete('/', function (req, res) {
+router.delete('/delete/:id', function (req, res) {
     api.deleteBook(req, res);
 });
 
