@@ -11,8 +11,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const B = require("../model/book");
 const A = require("../model/author");
-// import * as PR from 'request-promise'
-// import Schema as p from 'request'
 // offers methods to work with models
 class Api {
     constructor() {
@@ -147,7 +145,7 @@ class Api {
             let self = this;
             let book_id = req.params.id;
             // find the book first
-            yield this.books.find({ _id: book_id }).exec()
+            yield this.books.findOne({ _id: book_id }).exec()
                 .then((result) => __awaiter(this, void 0, void 0, function* () {
                 // set basic book params to update
                 // if params to update were not sent, keep current value

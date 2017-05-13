@@ -3,9 +3,6 @@
 import * as B from '../model/book'
 import * as A from '../model/author'
 import * as S from 'mongoose'
-// import * as PR from 'request-promise'
-// import Schema as p from 'request'
-
 
 
 // offers methods to work with models
@@ -121,9 +118,6 @@ export class Api {
             self.createBook(author_names, req, res)
         });
 
-
-
-
     }
 
 
@@ -183,9 +177,8 @@ export class Api {
         let book_id = req.params.id;
 
         // find the book first
-        await this.books.find({_id: book_id}).exec()
+        await this.books.findOne({_id: book_id}).exec()
         .then(async (result) => {
-
             // set basic book params to update
             // if params to update were not sent, keep current value
             let name = req.body.name || result.name;
