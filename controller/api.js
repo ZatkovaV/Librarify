@@ -20,18 +20,13 @@ class Api {
     }
     // find books according to id, name, description, author_id and / or author_name
     findBooks(req, res) {
-        var author_name;
-        // object contaning all conditions to be applied while searching docs
-        var cond = req.params;
-        // array of allowed params
-        var allowed = ['_id', 'name', 'desc', 'authors'];
+        let author_name;
         if (req.params.author_name)
             author_name = req.params.author_name;
-        // filter query parameters
-        for (let item in req.params)
-            // if param is not allowed or missing, remove it from conditions
-            if ((allowed.indexOf(item) == -1) || (!cond[item]))
-                delete cond[item];
+        // create search conditions
+        let cond = this.filterParams(['_id', 'name', 'desc', 'authors'], req.params);
+        console.log(cond);
+        // perform search
         this.books.find(cond).populate('authors').exec()
             .then((result) => {
             // if author_name was selected, filter results
@@ -48,18 +43,23 @@ class Api {
         })
             .catch((err) => {
             console.log(err);
-            res.send({ message: "An error occured." });
+            res.send({ message: "An error occured: " + err.message });
         });
     }
-    // find authors according to id, name or book id
-    findAuthors(req, res) {
-        var cond = req.params;
-        var allowed = ['_id', 'name', 'books'];
+    // filter params used in GET request
+    // allowed - array of allowed params
+    filterParams(allowed, params) {
+        let cond = params;
         // filter query parameters
-        for (let item in req.params)
+        for (let item in params)
             // if param is not allowed or missing, remove it from conditions
             if ((allowed.indexOf(item) == -1) || (!cond[item]))
                 delete cond[item];
+        return cond;
+    }
+    // find authors according to id, name or book id
+    findAuthors(req, res) {
+        let cond = this.filterParams(['_id', 'name', 'books'], req.params);
         this.authors.find(cond).populate('books').exec()
             .then((result) => {
             res.setHeader('Content-Type', 'application/json');
@@ -67,7 +67,7 @@ class Api {
         })
             .catch((err) => {
             console.log(err);
-            res.send({ message: "An error occured." });
+            res.send({ message: "An error occured: " + err.message });
         });
     }
     // ids - array of id's of authors, which are connected to a given book
