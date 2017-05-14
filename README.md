@@ -41,7 +41,7 @@ Librarify supports standard CRUD operations (with requests examples):
 ##### Create
 
 ```
-curl -X POST --data "name=NAME&desc=DESC&author[]=AUTHOR1&author[]=AUTHOR2" http://server:port/books/new
+curl -X POST --data "name=NAME&desc=DESC&author[]=name1&author[]=name2" http://server:port/books/new
 
 ```
 If a param is not given, default null value will be assigned.
@@ -72,7 +72,7 @@ Optional parameters:
 
 ##### Update
 ```
-curl -X PUT --data "name=NAME&desc=DESCRIPTON&author[]=AUTHOR1&AUTHOR=AUTHOR2" http://server:port/books/edit/:book_id
+curl -X PUT --data "name=NAME&desc=DESCRIPTON&author[]=NAME1&author[]=NAME2" http://server:port/books/edit/:book_id
 
 ```
 Optional parameters are:
