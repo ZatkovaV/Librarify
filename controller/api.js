@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const B = require("../model/book");
 const A = require("../model/author");
-// offers methods to work with models
+// offers CRUD methods to work with models
 class Api {
     constructor() {
         this.tmpAuthors = [];
@@ -20,25 +20,36 @@ class Api {
     }
     // finds books according to id or name
     findBooks(req, res) {
-        // priority of searching according to book id is higher
-        // that means if both name and id are submitted as params
-        // book will by find according to id
-        if (req.query.id)
-            var query = this.books.findById(req.query.id).populate('authors');
-        else if (req.query.name)
-            var query = this.books.find({
-                name: new RegExp("^.*" + req.query.name + ".*$", "i")
-            }).populate('authors');
-        else
-            var query = this.books.find().populate('authors');
-        query.exec(function (err, result) {
-            if (err)
-                res.send(JSON.stringify(err));
-            else {
-                res.setHeader('Content-Type', 'application/json');
-                res.send(JSON.stringify({ success: result }));
-            }
+        var query, author_name;
+        // object contaning all conditions to be applied while searching docs
+        var cond = req.params;
+        // array of allowed params
+        var allowed = ['_id', 'name', 'desc', 'authors'];
+        if (req.params.author_name)
+            author_name = req.params.author_name;
+        for (let item in req.params)
+            // if param is not allowed or missing, remove it from conditions
+            if ((allowed.indexOf(item) == -1) || (!cond[item]))
+                delete cond[item];
+        query = this.books.find(cond).populate({
+            path: 'authors',
+            select: '_id name books'
         });
+        query.exec()
+            .then((result) => {
+            // if author_name was selected, filter results
+            if (author_name)
+                result = result.filter((item) => {
+                    for (let i = 0; i < item.authors.length; i++)
+                        // return only books that contain author with given name
+                        if (item.authors[i].name == author_name[0])
+                            return true;
+                    return false;
+                });
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify({ success: result }));
+        })
+            .catch((err) => { res.send({ message: "An error occured." }); });
     }
     // ids - array of id's of authors, which are connected to a given book
     addBookToAuthors(book, ids, res, callback) {

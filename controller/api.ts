@@ -5,11 +5,12 @@ import * as A from '../model/author'
 import * as S from 'mongoose'
 
 
-// offers methods to work with models
+// offers CRUD methods to work with models
 export class Api {
     private books: typeof B.Book;
     private authors: typeof A.Author;
     private tmpAuthors: Array<S.Schema.Types.ObjectId> = [];
+
 
     constructor() {
         this.books = B.Book;
@@ -20,27 +21,45 @@ export class Api {
     // finds books according to id or name
     public findBooks(req, res) {
 
-        // priority of searching according to book id is higher
-        // that means if both name and id are submitted as params
-        // book will by find according to id
+        var query, author_name;
 
-        if (req.query.id) var query = this.books.findById(req.query.id).populate('authors');
+        // object contaning all conditions to be applied while searching docs
+        var cond = req.params;
 
-        // find books according to name
-        else if (req.query.name) var query = this.books.find({
-            name: new RegExp("^.*" + req.query.name + ".*$", "i")
-        }).populate('authors');
+        // array of allowed params
+        var allowed = ['_id', 'name', 'desc', 'authors'];
 
-        // if no matching parameter is set
-        else var query = this.books.find().populate('authors');
+        if (req.params.author_name)
+            author_name = req.params.author_name;
 
-        query.exec(function (err, result) {
-            if (err) res.send(JSON.stringify(err));
-            else {
+
+        for (let item in req.params)
+            // if param is not allowed or missing, remove it from conditions
+            if ((allowed.indexOf(item) == -1) || (!cond[item]))
+                delete cond[item];
+
+
+        query = this.books.find(cond).populate({
+            path: 'authors',
+            select: '_id name books'
+        });
+
+        query.exec()
+            .then((result) => {
+                // if author_name was selected, filter results
+                if (author_name)
+                    result = result.filter((item) => {
+                        for (let i = 0; i < item.authors.length; i++)
+                            // return only books that contain author with given name
+                            if (item.authors[i].name == author_name[0]) return true;
+
+                        return false;
+                    });
+
                 res.setHeader('Content-Type', 'application/json');
                 res.send(JSON.stringify({success: result}));
-            }
-        });
+            })
+            .catch((err) => {res.send({ message: "An error occured." })});
     }
 
 

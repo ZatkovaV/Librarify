@@ -6,7 +6,7 @@ var api = new api_int.Api();
 
 
 // GET find books according to id or name
-router.get('/', function (req, res) {
+router.get('(/id/:_id)?(/name/:name)?(/desc/:desc)?(/author/:authors)?(/author_name/:author_name)?/', function (req, res) {
     api.findBooks(req, res);
 });
 
@@ -20,7 +20,7 @@ router.post('/new', function (req, res) {
 // PUT update book info
 router.put('/edit/:id', function (req, res) {
     api.updateBook(req, res);
-})
+});
 
 
 // DELETE delete a book according to id
