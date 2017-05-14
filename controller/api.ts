@@ -28,7 +28,6 @@ export class Api {
 
         // create search conditions
         let cond = this.filterParams(['_id', 'name', 'desc', 'authors'], req.params);
-        console.log(cond);
 
 
         // perform search
@@ -89,7 +88,7 @@ export class Api {
 
     // ids - array of id's of authors, which are connected to a given book
     private addBookToAuthors(book, ids, res, callback?: (x) => void) {
-        let author_ids = ids;
+        let author_ids: typeof ids = ids;
 
         // appends book_id to all concerned authors
         this.authors.update({_id: {$in: ids}}, { $push: {books: book._id} }, {multi: true}).exec()
@@ -106,7 +105,7 @@ export class Api {
 
 
     // creates new Book object
-    private createBook(author_names, req, res) {
+    private createBook(author_names: [string], req, res) {
         let ids = [];
         let self = this;
 
@@ -147,7 +146,7 @@ export class Api {
         // when creating a new book, we also create authors - if they don't exist yet
         // currently, authors are
         let self = this;
-        let author_names = req.body.author;
+        let author_names: [string] = req.body.author;
         let foo = [];
 
 
@@ -155,8 +154,7 @@ export class Api {
             foo.push({name: author_names[i]});
         }
 
-        this.authors.insertMany(foo, {ordered: false}, function (err) {
-            if (err) console.log(err);
+        this.authors.insertMany(foo, {ordered: false}, function () {
             self.createBook(author_names, req, res)
         });
 
@@ -176,11 +174,10 @@ export class Api {
             await this.authors.update({books: id}, { $pull: {books: id} }, {multi: true}).exec()
         })
         .then(() => {
-                res.send({
-                    message: 'Object successfully deleted. ',
-                    id: id
-                });
-        });
+                res.send({ message: 'Object successfully deleted. ' });
+        })
+        .catch((err) => { res.send({message: "An error occurred: " + err.message}) });
+
     }
 
 
@@ -207,8 +204,10 @@ export class Api {
                     name: name,
                     desc: desc,
                     authors: this.tmpAuthors
-                }, (err) => {res.send({message: "Book successfully updated."})});
-            });
+                }, (err) => {
+                    if (err) res.send({message: "An error occurred: " + err.message});
+                    else res.send({message: "Book successfully updated."}); });
+                });
     }
 
 
@@ -221,6 +220,12 @@ export class Api {
         // find the book first
         await this.books.findOne({_id: book_id}).exec()
         .then(async (result) => {
+
+            if (result == null) {
+                res.send({ message: 'Book not found;'});
+                return;
+            }
+
             // set basic book params to update
             // if params to update were not sent, keep current value
             let name = req.body.name || result.name;
@@ -248,6 +253,9 @@ export class Api {
                         this.authors.insertMany(newAuthors, {ordered: false}, async function () {
                             await self.updateBookAndAuthors(req, res, book_id, name, desc);
                         });
+                    })
+                    .catch((err) => {
+                        if (err) res.send({message: "An error occurred: " + err.message});
                     });
             }
 
@@ -256,8 +264,13 @@ export class Api {
                 this.books.update({_id: book_id}, {
                     name: name,
                     desc: desc,
-                }, (err) => { res.send({message: "Book successfully updated."}); });
+                }, (err) => {
+                    if (err) res.send({message: "An error occurred: " + err.message});
+                    else res.send({message: "Book successfully updated."}); });
             }
+        })
+        .catch((err) => {
+            res.send({message: "An error occurred: " + err.message});
         });
 
     }
