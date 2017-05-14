@@ -18,13 +18,13 @@ export class Api {
     }
 
 
-    // finds books according to id or name
+    // find books according to id, name, description, author_id and / or author_name
     public findBooks(req, res) {
 
-        var query, author_name;
+        var author_name: string;
 
         // object contaning all conditions to be applied while searching docs
-        var cond = req.params;
+        var cond: typeof req.params = req.params;
 
         // array of allowed params
         var allowed = ['_id', 'name', 'desc', 'authors'];
@@ -32,19 +32,14 @@ export class Api {
         if (req.params.author_name)
             author_name = req.params.author_name;
 
-
+        // filter query parameters
         for (let item in req.params)
             // if param is not allowed or missing, remove it from conditions
             if ((allowed.indexOf(item) == -1) || (!cond[item]))
                 delete cond[item];
 
 
-        query = this.books.find(cond).populate({
-            path: 'authors',
-            select: '_id name books'
-        });
-
-        query.exec()
+        this.books.find(cond).populate('authors').exec()
             .then((result) => {
                 // if author_name was selected, filter results
                 if (author_name)
@@ -59,7 +54,34 @@ export class Api {
                 res.setHeader('Content-Type', 'application/json');
                 res.send(JSON.stringify({success: result}));
             })
-            .catch((err) => {res.send({ message: "An error occured." })});
+            .catch((err) => {
+                console.log(err);
+                res.send({ message: "An error occured." });
+            });
+    }
+
+
+    // find authors according to id, name or book id
+    public findAuthors(req, res) {
+
+        var cond: typeof req.params = req.params;
+        var allowed = ['_id', 'name', 'books'];
+
+        // filter query parameters
+        for (let item in req.params)
+            // if param is not allowed or missing, remove it from conditions
+            if ((allowed.indexOf(item) == -1) || (!cond[item]))
+                delete cond[item];
+
+        this.authors.find(cond).populate('books').exec()
+            .then((result) => {
+                res.setHeader('Content-Type', 'application/json');
+                res.send(JSON.stringify({success: result}));
+            })
+            .catch((err) => {
+                console.log(err);
+                res.send({ message: "An error occured." });
+            })
     }
 
 
@@ -82,7 +104,7 @@ export class Api {
     }
 
 
-
+    // creates new Book object
     private createBook(author_names, req, res) {
         let ids = [];
         let self = this;

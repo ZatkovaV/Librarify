@@ -6,6 +6,7 @@ var bodyParser = require('body-parser');
 
 var index = require('./routes/index');
 var books = require('./routes/books');
+var authors = require('./routes/authors');
 
 
 mongoose.Promise = global.Promise;
@@ -21,6 +22,7 @@ db.once('open', function() {
 
     // if connection is open, access db model
     app.use('/books', books);
+    app.use('/authors', authors);
 });
 
 

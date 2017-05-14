@@ -46,11 +46,11 @@ curl -X POST --data "name=NAME&desc=DESC&author[]=AUTHOR1&author[]=AUTHOR2" http
 ```
 If a param is not given, default null value will be assigned.
 Array of authors can contain as many authors as you wish. 
-Authors are unique, so if one of more of given authors have already been created before, their id is assigned to new book. Otherwise they are created first.
+Authors are unique, so if one or more of given authors have already been created before, their id is assigned to new book. Otherwise they are created first.
 
 ##### Read
 ```
-curl -i -H "Accept: application/json" http://server:port/books/id/545766544/name/some_name/desc/description/author/554545456456/author_name/some_author_name
+curl -i -H "Accept: application/json" http://server:port/books/id/:id/name/:name/desc/:desc/author/:author_id/author_name/:author_name
 ```
 Optional parameters are:
 * id - id of book
@@ -61,9 +61,18 @@ Optional parameters are:
 
 If no params are given, all documents are returned.
 
+It is also possible to search authors:
+```
+curl -i -H "Accept: application/json" http://server:port/authors/id/:id/name/:name/book/:book_id
+```
+Optional parameters:
+* id - id of author
+* name - name of author
+* book - id of book
+
 ##### Update
 ```
-curl -X PUT --data "name=NAME&desc=DESCRIPTON&author[]=AUTHOR1&AUTHOR=AUTHOR2" http://server:port/books/edit/59174984084ace2ee8ddc531
+curl -X PUT --data "name=NAME&desc=DESCRIPTON&author[]=AUTHOR1&AUTHOR=AUTHOR2" http://server:port/books/edit/:book_id
 
 ```
 Optional parameters are:
@@ -76,7 +85,7 @@ Mandatory parameters are:
 
 ##### Delete
 ```
-curl -X DELETE http://server:port/books/delete/591706185c0c8b11fa6fc616
+curl -X DELETE http://server:port/books/delete/:book_id
 
 ```
 Mandatory parameters are:

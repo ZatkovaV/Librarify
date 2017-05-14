@@ -18,24 +18,21 @@ class Api {
         this.books = B.Book;
         this.authors = A.Author;
     }
-    // finds books according to id or name
+    // find books according to id, name, description, author_id and / or author_name
     findBooks(req, res) {
-        var query, author_name;
+        var author_name;
         // object contaning all conditions to be applied while searching docs
         var cond = req.params;
         // array of allowed params
         var allowed = ['_id', 'name', 'desc', 'authors'];
         if (req.params.author_name)
             author_name = req.params.author_name;
+        // filter query parameters
         for (let item in req.params)
             // if param is not allowed or missing, remove it from conditions
             if ((allowed.indexOf(item) == -1) || (!cond[item]))
                 delete cond[item];
-        query = this.books.find(cond).populate({
-            path: 'authors',
-            select: '_id name books'
-        });
-        query.exec()
+        this.books.find(cond).populate('authors').exec()
             .then((result) => {
             // if author_name was selected, filter results
             if (author_name)
@@ -49,7 +46,29 @@ class Api {
             res.setHeader('Content-Type', 'application/json');
             res.send(JSON.stringify({ success: result }));
         })
-            .catch((err) => { res.send({ message: "An error occured." }); });
+            .catch((err) => {
+            console.log(err);
+            res.send({ message: "An error occured." });
+        });
+    }
+    // find authors according to id, name or book id
+    findAuthors(req, res) {
+        var cond = req.params;
+        var allowed = ['_id', 'name', 'books'];
+        // filter query parameters
+        for (let item in req.params)
+            // if param is not allowed or missing, remove it from conditions
+            if ((allowed.indexOf(item) == -1) || (!cond[item]))
+                delete cond[item];
+        this.authors.find(cond).populate('books').exec()
+            .then((result) => {
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify({ success: result }));
+        })
+            .catch((err) => {
+            console.log(err);
+            res.send({ message: "An error occured." });
+        });
     }
     // ids - array of id's of authors, which are connected to a given book
     addBookToAuthors(book, ids, res, callback) {
@@ -66,6 +85,7 @@ class Api {
             console.log(err);
         });
     }
+    // creates new Book object
     createBook(author_names, req, res) {
         let ids = [];
         let self = this;
